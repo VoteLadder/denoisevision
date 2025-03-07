@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DenoiseVision - CXR Denoising Evaluation</title>
+  <link rel="stylesheet" href="styles.css">
+  <meta name="description" content="Chest X-Ray Denoising Evaluation Study">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>DenoiseVision</h1>
+      <h2>Chest X-Ray Denoising Evaluation Study</h2>
+      <h3 class="study-design-subtitle">Statistical design: 80 unique images with 15% duplicates for optimal power</h3>
+      <div id="user-info" class="hidden">User: <span id="user-initials"></span></div>
+    </header>
+
+    <main>
+      <!-- Login Screen -->
+      <section id="login-screen" class="screen">
+        <div class="login-container">
+          <div class="login-form">
+            <h2>Welcome to DenoiseVision</h2>
+            <p>Please enter your three-letter initials to begin or resume the study.</p>
+            
+            <form id="login-form">
+              <div class="form-group">
+                <label for="initials">Your Initials (3 letters):</label>
+                <input type="text" id="initials" maxlength="3" required>
+              </div>
+              
+              <button type="submit" class="primary-button">Start Study</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- Instructions Screen -->
+      <section id="instructions-screen" class="screen hidden">
+        <div class="card">
+          <h2>Study Instructions</h2>
+          
+          <div class="instruction-section">
+            <h3>About This Study</h3>
+            <p>You'll be evaluating pairs of chest X-ray images. For each pair:</p>
+            <ul>
+              <li>The left image is a reference (noisy) image</li>
+              <li>The right image is either the original or a denoised version</li>
+            </ul>
+          </div>
+          
+          <div class="instruction-section">
+            <h3>Your Task</h3>
+            <p>For each image pair, you'll need to:</p>
+            <ol>
+              <li>Rate the overall quality improvement of the new image when c/w noisy image (1-5)</li>
+              <li>Indicate whether you think the comparison is original or denoised</li>
+              <li>Optionally provide additional comments</li>
+            </ol>
+          </div>
+          
+          <div class="instruction-section">
+            <h3>Study Design</h3>
+            <p>This study uses optimal statistical power design with:</p>
+            <ul>
+              <li>80 unique images to evaluate</li>
+              <li>15% duplicate images to measure consistency</li>
+              <li>Randomized presentation order</li>
+            </ul>
+            <p>This configuration provides optimal statistical power to detect a 10% difference in image quality.</p>
+          </div>
+          
+          <button id="begin-study-btn" class="primary-button">Begin Evaluation</button>
+        </div>
+      </section>
+
+      <!-- Study Screen -->
+      <section id="study-screen" class="screen hidden">
+        <div class="card">
+          <div class="progress-indicator">
+            <div class="progress-bar">
+              <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <div id="progress-text" class="progress-text">Image 1 of 20</div>
+          </div>
+          
+          <div class="image-comparison-container">
+            <div id="loading-images" class="loading-images">Loading images...</div>
+            
+            <div class="image-pair">
+              <div class="image-box">
+                <h3>Reference Image (Noisy)</h3>
+                <img id="noisy-image" src="" alt="Noisy reference image">
+              </div>
+              
+              <div class="image-box">
+                <h3>Comparison Image</h3>
+                <img id="comparison-image" src="" alt="Comparison image">
+              </div>
+            </div>
+          </div>
+          
+          <form id="rating-form" class="rating-form">
+            <div class="rating-section">
+              <h3>1. Improvement of image quality over noisy image on left:</h3>
+              <div class="quality-rating">
+                <label>
+                  <input type="radio" name="quality" value="1" required>
+                  Very poor
+                </label>
+                <label>
+                  <input type="radio" name="quality" value="2">
+                  Poor
+                </label>
+                <label>
+                  <input type="radio" name="quality" value="3">
+                  Acceptable
+                </label>
+                <label>
+                  <input type="radio" name="quality" value="4">
+                  Good
+                </label>
+                <label>
+                  <input type="radio" name="quality" value="5">
+                  Excellent
+                </label>
+              </div>
+            </div>
+            
+            <div class="rating-section">
+              <h3>2. The comparison image appears to be:</h3>
+              <div class="type-rating">
+                <label>
+                  <input type="radio" name="imageType" value="original" required>
+                  Original (unprocessed)
+                </label>
+                
+                <label>
+                  <input type="radio" name="imageType" value="denoised">
+                  Denoised (processed)
+                </label>
+              </div>
+            </div>
+            
+            <div class="rating-section">
+              <h3>Additional Comments:</h3>
+              <textarea id="comments" rows="3" placeholder="Optional comments about this image comparison..."></textarea>
+            </div>
+            
+            <div class="form-actions">
+              <button type="button" id="save-progress-btn" class="secondary-button">
+                Save Progress
+              </button>
+              <button type="submit" class="primary-button">
+                Save Rating & Next Image
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Completion Screen -->
+      <section id="completion-screen" class="screen hidden">
+        <div class="card">
+          <h2>Study Complete!</h2>
+          <p>Thank you for participating in the CXR Denoising Evaluation Study. Your results have been automatically sent to our database.</p>
+          
+          <div class="results-summary">
+            <h3>Your Results Summary</h3>
+            
+            <div class="summary-stats">
+              <div class="stat-box">
+                <div id="total-images" class="stat-value">0</div>
+                <div class="stat-label">Images Evaluated</div>
+              </div>
+              
+              <div class="stat-box">
+                <div id="accuracy-rate" class="stat-value">0%</div>
+                <div class="stat-label">Accuracy</div>
+              </div>
+              
+              <div class="stat-box">
+                <div id="avg-original" class="stat-value">0.0</div>
+                <div class="stat-label">Avg. Original Rating</div>
+              </div>
+              
+              <div class="stat-box">
+                <div id="avg-denoised" class="stat-value">0.0</div>
+                <div class="stat-label">Avg. Denoised Rating</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="completion-actions">
+            <button id="download-results-btn" class="primary-button">
+              Download Results CSV
+            </button>
+            
+            <button id="start-new-btn" class="secondary-button">
+              Start New Session
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>© <span id="current-year"></span> SmartAngio.com - DenoiseVision</p>
+    </footer>
+  </div>
+
+  <script src="image-list.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
