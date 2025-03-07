@@ -3,16 +3,397 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DenoiseVision - CXR Denoising Evaluation</title>
-  <link rel="stylesheet" href="styles.css">
-  <meta name="description" content="Chest X-Ray Denoising Evaluation Study">
+  <title>DenoiseVision - CXR Evaluation</title>
+  <style>
+    :root {
+      --primary-color: #3a86ff;
+      --primary-dark: #2a64c9;
+      --secondary-color: #8338ec;
+      --light-gray: #f5f5f5;
+      --dark-gray: #333;
+      --text-color: #444;
+      --border-radius: 4px;
+      --box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--text-color);
+      background-color: #f9f9f9;
+    }
+    
+    .hidden { display: none !important; }
+    
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    
+    /* Compact header */
+    header {
+      background-color: white;
+      padding: 8px 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header-titles {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    header h1 {
+      color: var(--primary-color);
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+    
+    header h2 {
+      font-weight: normal;
+      font-size: 14px;
+      color: var(--dark-gray);
+    }
+    
+    header h3.study-design-subtitle {
+      font-weight: normal;
+      font-size: 11px;
+      color: var(--secondary-color);
+    }
+    
+    #user-info {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 3px 8px;
+      border-radius: var(--border-radius);
+      font-size: 12px;
+    }
+    
+    main {
+      flex: 1;
+      padding: 10px;
+      width: 100%;
+    }
+    
+    footer {
+      background-color: var(--dark-gray);
+      color: white;
+      text-align: center;
+      padding: 5px;
+      font-size: 11px;
+    }
+    
+    /* Card layout */
+    .card {
+      background-color: white;
+      padding: 12px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      margin-bottom: 10px;
+    }
+    
+    /* Login screen */
+    .login-container {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    
+    .login-form h2 {
+      margin-bottom: 10px;
+      color: var(--primary-color);
+      font-size: 16px;
+    }
+    
+    .form-group {
+      margin-bottom: 10px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 3px;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 5px 8px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      text-transform: uppercase;
+    }
+    
+    /* Buttons */
+    .primary-button, .secondary-button {
+      padding: 5px 10px;
+      font-size: 13px;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-weight: bold;
+    }
+    
+    .primary-button {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .primary-button:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    .secondary-button {
+      background-color: var(--light-gray);
+      color: var(--dark-gray);
+      margin-right: 10px;
+    }
+    
+    .secondary-button:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    
+    /* Instructions screen */
+    .instruction-section {
+      margin-bottom: 10px;
+    }
+    
+    .instruction-section h3 {
+      margin-bottom: 3px;
+      color: var(--secondary-color);
+      font-size: 14px;
+    }
+    
+    .instruction-section ul, .instruction-section ol {
+      margin-left: 20px;
+      margin-top: 3px;
+    }
+    
+    .instruction-section li {
+      margin-bottom: 2px;
+    }
+    
+    /* Study screen */
+    .progress-indicator {
+      margin-bottom: 8px;
+    }
+    
+    .progress-bar {
+      height: 6px;
+      background-color: #e0e0e0;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 2px;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background-color: var(--primary-color);
+      transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+      text-align: right;
+      font-size: 11px;
+      color: var(--primary-color);
+    }
+    
+    .image-comparison-container {
+      position: relative;
+      margin-bottom: 10px;
+    }
+    
+    .loading-images {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: bold;
+      color: var(--primary-color);
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 5px 10px;
+      border-radius: var(--border-radius);
+      z-index: 10;
+    }
+    
+    .image-pair {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .image-box {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .image-box h3 {
+      margin-bottom: 5px;
+      color: var(--secondary-color);
+      font-size: 12px;
+    }
+    
+    .image-box img {
+      max-width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+    }
+    
+    .rating-form {
+      margin-top: 10px;
+    }
+    
+    .rating-section {
+      margin-bottom: 8px;
+    }
+    
+    .rating-section h3 {
+      margin-bottom: 4px;
+      color: var(--dark-gray);
+      font-size: 13px;
+    }
+    
+    .quality-rating, .type-rating {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .quality-rating label, .type-rating label {
+      display: flex;
+      align-items: center;
+      padding: 3px 6px;
+      background-color: var(--light-gray);
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .quality-rating input, .type-rating input {
+      margin-right: 4px;
+    }
+    
+    .quality-rating input:checked + label, .type-rating input:checked + label {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    textarea {
+      width: 100%;
+      padding: 5px 8px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      resize: vertical;
+      font-family: inherit;
+      font-size: 12px;
+      height: 40px;
+    }
+    
+    /* Completion screen */
+    h2 {
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+    
+    .results-summary {
+      margin: 10px 0;
+    }
+    
+    .results-summary h3 {
+      margin-bottom: 8px;
+      color: var(--secondary-color);
+      font-size: 14px;
+    }
+    
+    .summary-stats {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .stat-box {
+      background-color: var(--light-gray);
+      padding: 8px;
+      border-radius: var(--border-radius);
+      flex: 1;
+      min-width: 100px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    .stat-label {
+      margin-top: 3px;
+      color: var(--dark-gray);
+      font-size: 11px;
+    }
+    
+    .completion-actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .image-pair {
+        flex-direction: column;
+      }
+      
+      .image-box {
+        margin-bottom: 10px;
+      }
+      
+      .form-actions {
+        flex-direction: column;
+        gap: 5px;
+      }
+      
+      .secondary-button {
+        margin-right: 0;
+      }
+    }
+    
+    /* Error state for images */
+    img.error {
+      background-color: #fdd;
+      border: 1px solid #faa;
+    }
+  </style>
 </head>
 <body>
   <div class="app-container">
     <header>
-      <h1>DenoiseVision</h1>
-      <h2>Chest X-Ray Denoising Evaluation Study</h2>
-      <h3 class="study-design-subtitle">Statistical design: 80 unique images with 15% duplicates for optimal power</h3>
+      <div class="header-titles">
+        <h1>DenoiseVision</h1>
+        <h2>CXR Denoising Evaluation</h2>
+        <h3 class="study-design-subtitle">80 images, 15% duplicates</h3>
+      </div>
       <div id="user-info" class="hidden">User: <span id="user-initials"></span></div>
     </header>
 
@@ -20,17 +401,17 @@
       <!-- Login Screen -->
       <section id="login-screen" class="screen">
         <div class="login-container">
-          <div class="login-form">
+          <div class="card login-form">
             <h2>Welcome to DenoiseVision</h2>
-            <p>Please enter your three-letter initials to begin or resume the study.</p>
-            
             <form id="login-form">
               <div class="form-group">
                 <label for="initials">Your Initials (3 letters):</label>
                 <input type="text" id="initials" maxlength="3" required>
               </div>
-              
-              <button type="submit" class="primary-button">Start Study</button>
+              <div class="form-actions">
+                <div></div>
+                <button type="submit" class="primary-button">Start Study</button>
+              </div>
             </form>
           </div>
         </div>
@@ -43,35 +424,22 @@
           
           <div class="instruction-section">
             <h3>About This Study</h3>
-            <p>You'll be evaluating pairs of chest X-ray images. For each pair:</p>
-            <ul>
-              <li>The left image is a reference (noisy) image</li>
-              <li>The right image is either the original or a denoised version</li>
-            </ul>
+            <p>Left image: reference (noisy). Right: original or denoised.</p>
           </div>
           
           <div class="instruction-section">
             <h3>Your Task</h3>
-            <p>For each image pair, you'll need to:</p>
             <ol>
-              <li>Rate the overall quality improvement of the new image when c/w noisy image (1-5)</li>
-              <li>Indicate whether you think the comparison is original or denoised</li>
-              <li>Optionally provide additional comments</li>
+              <li>Rate quality improvement (1-5)</li>
+              <li>Identify if original or denoised</li>
+              <li>Optional comments</li>
             </ol>
           </div>
           
-          <div class="instruction-section">
-            <h3>Study Design</h3>
-            <p>This study uses optimal statistical power design with:</p>
-            <ul>
-              <li>80 unique images to evaluate</li>
-              <li>15% duplicate images to measure consistency</li>
-              <li>Randomized presentation order</li>
-            </ul>
-            <p>This configuration provides optimal statistical power to detect a 10% difference in image quality.</p>
+          <div class="form-actions">
+            <div></div>
+            <button id="begin-study-btn" class="primary-button">Begin Evaluation</button>
           </div>
-          
-          <button id="begin-study-btn" class="primary-button">Begin Evaluation</button>
         </div>
       </section>
 
@@ -86,11 +454,11 @@
           </div>
           
           <div class="image-comparison-container">
-            <div id="loading-images" class="loading-images">Loading images...</div>
+            <div id="loading-images" class="loading-images">Loading...</div>
             
             <div class="image-pair">
               <div class="image-box">
-                <h3>Reference Image (Noisy)</h3>
+                <h3>Reference (Noisy)</h3>
                 <img id="noisy-image" src="" alt="Noisy reference image">
               </div>
               
@@ -103,7 +471,7 @@
           
           <form id="rating-form" class="rating-form">
             <div class="rating-section">
-              <h3>1. Improvement of image quality over noisy image on left:</h3>
+              <h3>1. Quality improvement over noisy image:</h3>
               <div class="quality-rating">
                 <label>
                   <input type="radio" name="quality" value="1" required>
@@ -133,19 +501,19 @@
               <div class="type-rating">
                 <label>
                   <input type="radio" name="imageType" value="original" required>
-                  Original (unprocessed)
+                  Original
                 </label>
                 
                 <label>
                   <input type="radio" name="imageType" value="denoised">
-                  Denoised (processed)
+                  Denoised
                 </label>
               </div>
             </div>
             
             <div class="rating-section">
-              <h3>Additional Comments:</h3>
-              <textarea id="comments" rows="3" placeholder="Optional comments about this image comparison..."></textarea>
+              <h3>Comments:</h3>
+              <textarea id="comments" rows="2" placeholder="Optional comments..."></textarea>
             </div>
             
             <div class="form-actions">
@@ -153,7 +521,7 @@
                 Save Progress
               </button>
               <button type="submit" class="primary-button">
-                Save Rating & Next Image
+                Save & Next
               </button>
             </div>
           </form>
@@ -164,10 +532,10 @@
       <section id="completion-screen" class="screen hidden">
         <div class="card">
           <h2>Study Complete!</h2>
-          <p>Thank you for participating in the CXR Denoising Evaluation Study. Your results have been automatically sent to our database.</p>
+          <p>Thank you for participating in the CXR Denoising Evaluation Study.</p>
           
           <div class="results-summary">
-            <h3>Your Results Summary</h3>
+            <h3>Results Summary</h3>
             
             <div class="summary-stats">
               <div class="stat-box">
@@ -182,23 +550,23 @@
               
               <div class="stat-box">
                 <div id="avg-original" class="stat-value">0.0</div>
-                <div class="stat-label">Avg. Original Rating</div>
+                <div class="stat-label">Avg. Original</div>
               </div>
               
               <div class="stat-box">
                 <div id="avg-denoised" class="stat-value">0.0</div>
-                <div class="stat-label">Avg. Denoised Rating</div>
+                <div class="stat-label">Avg. Denoised</div>
               </div>
             </div>
           </div>
           
           <div class="completion-actions">
             <button id="download-results-btn" class="primary-button">
-              Download Results CSV
+              Download CSV
             </button>
             
             <button id="start-new-btn" class="secondary-button">
-              Start New Session
+              New Session
             </button>
           </div>
         </div>
