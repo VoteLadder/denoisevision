@@ -53,9 +53,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Study configuration
   const STUDY_CONFIG = {
-    uniqueImages: 3, // Set to 80 as in the original implementation
+    uniqueImages: 80, // Set to 80 as in the original implementation
     duplicatePercentage: 15, // 15% duplicates
-    minSpacing: 3 // Minimum spacing between duplicates
+    minSpacing: 5 // Minimum spacing between duplicates
   };
 
   // Google Apps Script web app URL
